@@ -1,15 +1,30 @@
-name: CI
+name: Main
 
 # Controls when the action will run. 
 on:
   push:
     branches:
-      - 'feat**'
+      - 'develop'
 
 jobs:
-  correr_pruebas:
-    if: ${{ contains(github.event.head_commit.message, 'TERMINADO') }}
+  detectar_palabra_clave:
+    if: ${{ contains(github.event.head_commit.message, 'Automatic merge') }}
+    name: Detectar palabra clave y actualizar la rama de funcionalidad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear rama
+        run: |
+            git checkout -b release
+            git push -f -u origin release
+      - name: automerge
+        uses: tukasz/direct-merge-action@master
+        with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            source-branch: develop
+            target-branch: release
+  correr_pruebas:    
     name: Correr pruebas si el commit contiene TERMINADO
+    needs: detectar_palabra_clave
     runs-on: ubuntu-latest
     steps:
     - name: Checkout de repositorio
@@ -49,6 +64,5 @@ jobs:
         uses: tukasz/direct-merge-action@master
         with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            source-branch: ${{ github.ref }}
+            source-branch: release
             target-branch: main
-  
