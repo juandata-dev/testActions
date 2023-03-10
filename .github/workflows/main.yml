@@ -7,9 +7,9 @@ on:
       - 'feat**'
 
 jobs:
-  detectar_palabra_clave:
+  correr_pruebas:
     if: ${{ contains(github.event.head_commit.message, 'TERMINADO') }}
-    name: detectar la palabra clave
+    name: Correr pruebas si el commit contiene TERMINADO
     runs-on: ubuntu-latest
     steps:
     - name: Checkout de repositorio
@@ -25,3 +25,30 @@ jobs:
     - name: Correr pruebas
       id: correr-pruebas
       run: python -m unittest discover -s tests
+    - name: Validar resultado con errores
+      if: ${{ failure() }}
+      env:
+        MENSAJE_ERROR: Una o varias pruebas fallaron
+      run: echo "::set-output name=respuesta::${MENSAJE_ERROR}"
+    - name: Validar resultado sin errores
+      if: ${{ success() }}
+      env:
+        MENSAJE_EXITO: Todas las pruebas fueron exitosas
+      run: echo "::set-output name=respuesta::${MENSAJE_EXITO}"
+    - name: Cálculo de cubrimiento
+      id: cubrimiento
+      run: |
+          coverage run -m unittest tests/TestLogica.py
+          coverage report -m
+  automerge:
+    name: Automerge
+    needs: correr_pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: automerge
+        uses: tukasz/direct-merge-action@master
+        with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            source-branch: ${{ github.ref }}
+            target-branch: main
+  
