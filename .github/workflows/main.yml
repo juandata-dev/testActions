@@ -7,9 +7,9 @@ on:
       - 'feat**'
 
 jobs:
-  detectar_palabra_clave:
+  correr_pruebas:
     if: ${{ contains(github.event.head_commit.message, 'TERMINADO') }}
-    name: detectar la palabra clave
+    name: Correr pruebas si el commit contiene TERMINADO
     runs-on: ubuntu-latest
     steps:
     - name: Checkout de repositorio
@@ -40,3 +40,15 @@ jobs:
       run: |
           coverage run -m unittest tests/TestLogica.py
           coverage report -m
+  automerge:
+    name: Automerge
+    needs: correr_pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: automerge
+        uses: tukasz/direct-merge-action@master
+        with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            source-branch: ${{ github.ref }}
+            target-branch: main
+  
