@@ -8,7 +8,7 @@ on:
 
 jobs:
   detectar_palabra_clave:
-    if: ${{ contains(github.event.head_commit.message, 'Automatic merge') }}
+    if: ${{ contains(github.event.head_commit.message, 'Candidato release') }}
     name: Detectar palabra clave y actualizar la rama de funcionalidad
     runs-on: ubuntu-latest
     steps:
